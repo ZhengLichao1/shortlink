@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>短链服务</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #1f2328;
+    --text-weak: #656d76;
+    --border: #d8dee4;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --ok: #1a7f37;
+    --err: #cf222e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 64px 20px 40px;
+  }
+  .wrap { width: 100%; max-width: 620px; }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    letter-spacing: .5px;
+  }
+  .sub {
+    font-size: 13px;
+    color: var(--text-weak);
+    margin: 0 0 28px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-weak);
+    margin-bottom: 8px;
+  }
+  .row { display: flex; gap: 10px; }
+
+  input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    padding: 0 12px;
+    font-size: 14px;
+    color: var(--text);
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input[type="text"]:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  }
+  input[type="text"]::placeholder { color: #a0a8b0; }
+
+  button {
+    height: 40px;
+    padding: 0 18px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #fff;
+    background: var(--primary);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s;
+  }
+  button:hover:not(:disabled) { background: var(--primary-hover); }
+  button:disabled { opacity: .6; cursor: default; }
+
+  button.ghost {
+    background: #fff;
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 0 12px;
+    height: 34px;
+    font-size: 13px;
+  }
+  button.ghost:hover { background: #f3f4f6; }
+
+  .msg {
+    margin-top: 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 20px;
+  }
+  .msg.ok { color: var(--ok); }
+  .msg.err { color: var(--err); }
+
+  .result {
+    display: none;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--border);
+  }
+  .result.show { display: block; }
+
+  .link-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #f6f8fa;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .link-box a {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    color: var(--primary);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .link-box a:hover { text-decoration: underline; }
+
+  .meta {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-weak);
+    line-height: 1.8;
+  }
+  .meta code {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    background: #f0f2f4;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  .foot {
+    margin-top: 22px;
+    font-size: 12px;
+    color: var(--text-weak);
+    line-height: 1.9;
+  }
+  .foot code {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>短链服务</h1>
+  <p class="sub">把长链接转成短码，访问短码会自动 302 跳回原地址</p>
+
+  <div class="card">
+    <label for="url">原始链接</label>
+    <div class="row">
+      <input id="url" type="text" placeholder="https://example.com/very/long/path?a=1&b=2"
+             autocomplete="off" spellcheck="false">
+      <button id="btn" onclick="create()">生成短链</button>
+    </div>
+
+    <div id="msg" class="msg"></div>
+
+    <div id="result" class="result">
+      <div class="link-box">
+        <a id="shortLink" href="#" target="_blank" rel="noopener"></a>
+        <button class="ghost" onclick="copyLink()">复制</button>
+        <button class="ghost" onclick="openLink()">打开</button>
+      </div>
+      <div class="meta">
+        短码：<code id="code"></code>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    接口：<code>POST /api/links?url=...</code>　·　访问 <code>/{code}</code> 返回 <code>302</code><br>
+    首次访问回源查库并写入 Redis 缓存，之后命中缓存不再查库。
+  </div>
+
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  function setMsg(text, type) {
+    const el = $('msg');
+    el.textContent = text || '';
+    el.className = 'msg' + (type ? ' ' + type : '');
+  }
+
+  async function create() {
+    const url = $('url').value.trim();
+    if (!url) {
+      setMsg('请先粘贴一个链接', 'err');
+      return;
+    }
+    if (!/^https?:\/\//i.test(url)) {
+      setMsg('链接必须以 http:// 或 https:// 开头', 'err');
+      return;
+    }
+
+    const btn = $('btn');
+    btn.disabled = true;
+    btn.textContent = '生成中…';
+    setMsg('');
+
+    try {
+      const res = await fetch('/api/links?url=' + encodeURIComponent(url), { method: 'POST' });
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setMsg(data.error || ('生成失败，HTTP ' + res.status), 'err');
+        $('result').classList.remove('show');
+        return;
+      }
+
+      $('shortLink').textContent = data.shortUrl;
+      $('shortLink').href = data.shortUrl;
+      $('code').textContent = data.code;
+      $('result').classList.add('show');
+      setMsg('生成成功', 'ok');
+    } catch (e) {
+      setMsg('请求失败：' + e.message, 'err');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '生成短链';
+    }
+  }
+
+  function copyLink() {
+    const text = $('shortLink').textContent;
+    navigator.clipboard.writeText(text)
+      .then(() => setMsg('已复制到剪贴板', 'ok'))
+      .catch(() => setMsg('复制失败，请手动选中复制', 'err'));
+  }
+
+  function openLink() {
+    const href = $('shortLink').getAttribute('href');
+    if (href) window.open(href, '_blank', 'noopener');
+  }
+
+  // 回车即生成
+  $('url').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') create();
+  });
+</script>
+</body>
+</html>
