@@ -18,6 +18,9 @@ public final class RedisKeys {
     /** 短码 → 点击次数 的计数前缀（后续使用） */
     public static final String CLICK_PREFIX = "link:click:";
 
+    /** 代刷盘的短码集合：跳转时把短码塞进来，定时任务按这个集合消费 */
+    public static final String CLICK_DIRTY = "link:dirty:click";
+
     public static String code(String shortUri) {
         return CODE_PREFIX + shortUri;
     }

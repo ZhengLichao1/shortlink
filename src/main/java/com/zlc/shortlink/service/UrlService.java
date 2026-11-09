@@ -81,4 +81,12 @@ public class UrlService {
 
         return link.getOriginUrl();
     }
+    /**
+     * 记录一次点击：只在Redis累加，不写进数据库。
+     * 真正的落库交给定时任务批量处理。
+     */
+    public void incrementClick(String code) {
+        redis.opsForValue().increment(RedisKeys.click(code));
+        redis.opsForSet().add(RedisKeys.CLICK_DIRTY,code);
+    }
 }

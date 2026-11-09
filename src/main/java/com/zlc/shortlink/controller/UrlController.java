@@ -47,6 +47,8 @@ public class UrlController {
             return;
         }
 
+        urlService.incrementClick(code);
+
         response.setStatus(302);
         response.setHeader("Location", originUrl);
     }
