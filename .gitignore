@@ -36,3 +36,6 @@ application-local.yml
 
 ### 本地环境变量 ###
 .env
+
+### 压测原始结果 ###
+*.jtl
