@@ -11,13 +11,3 @@ CREATE TABLE t_link (
     PRIMARY KEY (id),
     UNIQUE KEY uk_short_uri (short_uri)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='短链表';
-
-CREATE TABLE t_link_access_log (
-    id          BIGINT       NOT NULL AUTO_INCREMENT,
-    link_id     BIGINT       NOT NULL,
-    ip          VARCHAR(64)  DEFAULT NULL,
-    user_agent  VARCHAR(512) DEFAULT NULL,
-    access_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    KEY idx_link_time (link_id, access_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='访问日志';
