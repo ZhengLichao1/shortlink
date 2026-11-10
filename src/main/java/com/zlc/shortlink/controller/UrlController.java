@@ -29,8 +29,13 @@ public class UrlController {
     /** 生成短链 */
     @PostMapping("/api/links")
     public Map<String, Object> create(@RequestParam String url) {
+        // 校验失败抛异常，交给 GlobalExceptionHandler 统一转成 400 + JSON
         if (url == null || !(url.startsWith("http://") || url.startsWith("https://"))) {
-            return Map.of("error", "url 必须以 http:// 或 https:// 开头");
+            throw new IllegalArgumentException("url 必须以 http:// 或 https:// 开头");
+        }
+        // 与 t_link.origin_url 的字段长度保持一致，超长直接拒绝，否则插入时会抛 DataTooLong
+        if (url.length() > 1024) {
+            throw new IllegalArgumentException("链接过长，最多 1024 个字符");
         }
 
         String code = urlService.createShortLink(url);
