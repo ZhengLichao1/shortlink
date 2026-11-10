@@ -49,12 +49,20 @@ public class ClickFlushTask {
                 continue;
             }
 
-            linkMapper.update(null,new LambdaUpdateWrapper<Link>()
-                    .eq(Link::getShortUri,code)
-                    .setSql("click_num = click_num + " + delta));
+            try {
+                linkMapper.update(null, new LambdaUpdateWrapper<Link>()
+                        .eq(Link::getShortUri, code)
+                        .setSql("click_num = click_num + " + delta));
 
-            total += delta;
-            log.info("刷盘 code={} 写入 {} 次点击", code, delta);
+                total += delta;
+                log.info("刷盘 code={} 写入 {} 次点击", code, delta);
+            } catch (Exception e) {
+                // 更新失败就把取走的计数还回去，并放回待刷盘集合，等下一轮重试；
+                // 否则计数已经从 Redis 删掉，这批点击就永久丢了
+                redis.opsForValue().increment(RedisKeys.click(code), delta);
+                redis.opsForSet().add(RedisKeys.CLICK_DIRTY, code);
+                log.error("刷盘失败 code={}，已回滚 {} 次点击等待重试", code, delta, e);
+            }
         }
 
         log.info("本次刷盘完成，共写入 {} 次点击", total);
