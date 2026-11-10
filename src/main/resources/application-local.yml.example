@@ -1,0 +1,6 @@
+# 复制为 application-local.yml 后填入本地实际值（该文件已被 .gitignore 忽略，不会进仓库）
+# cp src/main/resources/application-local.yml.example src/main/resources/application-local.yml
+spring:
+  datasource:
+    username: root
+    password: your_password_here
