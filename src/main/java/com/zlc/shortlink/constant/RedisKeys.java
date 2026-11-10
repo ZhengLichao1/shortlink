@@ -28,4 +28,11 @@ public final class RedisKeys {
     public static String click(String shortUri) {
         return CLICK_PREFIX + shortUri;
     }
+
+    /** 回源互斥锁前缀：防止缓存击穿，同一短码同时只有一个请求查库 */
+    public static final String LOCK_PREFIX = "link:lock:";
+
+    public static String lock(String shortUri) {
+        return LOCK_PREFIX + shortUri;
+    }
 }

@@ -22,3 +22,18 @@ mybatis-plus:
 
 app:
   domain: http://localhost:8080
+
+# 两级缓存与布隆过滤器配置
+# 压测时改这两个开关做三组对比：
+#   l1=false l2=false → 直连 MySQL
+#   l1=false l2=true  → 单级 Redis
+#   l1=true  l2=true  → Caffeine + Redis
+shortlink:
+  cache:
+    l1-enabled: true
+    l2-enabled: true
+    l1-max-size: 10000
+    # L1 故意比 L2 短：本地缓存没有失效通知，多实例下只能等它自己过期
+    l1-ttl-seconds: 10
+    bloom-expected-insertions: 100000
+    bloom-false-positive-rate: 0.01
